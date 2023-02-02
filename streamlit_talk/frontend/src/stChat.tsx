@@ -100,7 +100,7 @@ class Chat extends StreamlitComponentBase {
                     complete_text.split(initial_text).join('')
                   )
                   .callFunction(state => {
-                    // state.elements.cursor.setAttribute('hidden', 'hidden');
+                    state.elements.cursor.setAttribute('hidden', 'hidden');
                     typewriter.stop();
                   })
                   .start();
