@@ -90,7 +90,7 @@ class Chat extends StreamlitComponentBase {
             <Typewriter
               options={{
                 delay: 10,
-                cursor: '',
+                cursor: '▎',
                 onCreateTextNode: refreshStreamlitAndCreateNode
               }}
               onInit={typewriter => {
@@ -100,6 +100,7 @@ class Chat extends StreamlitComponentBase {
                     complete_text.split(initial_text).join('')
                   )
                   .callFunction(state => {
+                    // state.elements.cursor.setAttribute('hidden', 'hidden');
                     typewriter.stop();
                   })
                   .start();

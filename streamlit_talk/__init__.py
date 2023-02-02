@@ -99,7 +99,7 @@ if not _RELEASE:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
 
     with chatlog_placeholder.container():
-        message(initial_text="Hello, I am a Chatbot,", complete_text="Hello, I am a Chatbot, how may I help you?", use_typewriter=True)
+        message(initial_text="Hello, I am a Chatbot,", complete_text="Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things!", use_typewriter=True)
         message("Hey, what's a chatbot?", is_user=True, avatar_style=user_avatar)
         message(long_message, avatar_style=bot_avatar)
         for i in range(10):
