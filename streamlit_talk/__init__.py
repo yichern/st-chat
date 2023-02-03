@@ -3,7 +3,7 @@ from typing import Literal, Optional, Union
 import time
 import streamlit.components.v1 as components
 
-_RELEASE = False
+_RELEASE = True
 COMPONENT_NAME = "streamlit_talk"
 
 if _RELEASE:  # use the build instead of development if release is true
@@ -50,6 +50,7 @@ def message(
     seed: Optional[Union[int, str]] = 42,
     key: Optional[str] = None,
     use_typewriter: bool = False,
+    partial_replies: bool = False,
 ):
     """
     Creates a new instance of streamlit-chat component
@@ -76,7 +77,8 @@ def message(
     """
     if not avatar_style:
         avatar_style = "pixel-art-neutral" if is_user else "bottts"
-    if not use_typewriter:
+
+    if not partial_replies:
         return _streamlit_talk(
             value=value, 
             animateFrom=animate_from, 
@@ -85,35 +87,39 @@ def message(
             avatarStyle=avatar_style, 
             key=value,
             useTypewriter=use_typewriter,
-            default=True
+            default=True,
+            partialReplies=partial_replies,
         )
-
-    if st.session_state.get("force_animation", None):
-        return_value = _streamlit_talk(
-            value=value, 
-            animateFrom=animate_from, 
-            seed=seed, 
-            isUser=is_user, 
-            avatarStyle=avatar_style, 
-            key=value,
-            useTypewriter=True,
-            default=True
-        )
-        if return_value != False:
-            st.session_state.force_animation = False
-            st.stop()
-
     else:
-        return _streamlit_talk(
-            value=value, 
-            animateFrom=animate_from, 
-            seed=seed, 
-            isUser=is_user, 
-            avatarStyle=avatar_style, 
-            key=key,
-            useTypewriter=False,
-            default=True
-        )
+        if st.session_state.get("force_animation", None):
+            return_value = _streamlit_talk(
+                value=value, 
+                animateFrom=animate_from, 
+                seed=seed, 
+                isUser=is_user, 
+                avatarStyle=avatar_style, 
+                key=value,
+                useTypewriter=True,
+                default=True,
+                partialReplies=partial_replies,
+            )
+            if return_value != False:
+                st.session_state.force_animation = False
+                # the typewriter animation will force a refresh
+                st.stop()
+
+        else:
+            return _streamlit_talk(
+                value=value, 
+                animateFrom=animate_from, 
+                seed=seed, 
+                isUser=is_user, 
+                avatarStyle=avatar_style, 
+                key=key,
+                useTypewriter=False,
+                default=True,
+                partialReplies=partial_replies,
+            )
 
 
 if not _RELEASE:
@@ -181,6 +187,7 @@ if not _RELEASE:
             animate_from=st.session_state.prev_message,
             use_typewriter=True,
             key="last_message_animation",
+            partial_replies=True,
         )
 
 
