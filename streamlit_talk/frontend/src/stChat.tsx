@@ -16,7 +16,7 @@ const refreshStreamlitAndCreateNode = (character: string) => {
 }
 
 const MessageContainer = (props: ComponentProps<any>) => {
-  const { theme, value, animateFrom, useTypewriter, partialReplies } = props
+  const { theme, value, animateFrom, useTypewriter } = props
   const StyledDiv = styled.div({
     display: 'inline-block',
     background: theme.secondaryBackgroundColor,
@@ -46,10 +46,6 @@ const MessageContainer = (props: ComponentProps<any>) => {
               .callFunction(state => {
                 setTimeout(() => state.elements.cursor.setAttribute('hidden', 'hidden'), 3500)
                 typewriter.stop()
-                console.log(partialReplies)
-                if (partialReplies) {
-                  Streamlit.setComponentValue(false)
-                }
               })
               .start()
           }}
@@ -70,7 +66,7 @@ const Chat = (props: ComponentProps<any>) => {
       Streamlit.setFrameHeight()
     }
   );
-  const { isUser, avatarStyle, seed, animateFrom, value, useTypewriter, partialReplies } = props.args
+  const { isUser, avatarStyle, seed, animateFrom, value, useTypewriter } = props.args
 
   let avatarUrl
   if (avatarStyle.startsWith("https")) {
@@ -131,7 +127,7 @@ const Chat = (props: ComponentProps<any>) => {
     return (
       <ChatContainer isUser={isUser}>
         <Avatar src={avatarUrl} alt="profile" draggable="false"/>
-        <MessageContainer theme={theme} value={value} animateFrom={animateFrom} useTypewriter={useTypewriter} partialReplies={partialReplies}>
+        <MessageContainer theme={theme} value={value} animateFrom={animateFrom} useTypewriter={useTypewriter}>
         </MessageContainer>
       </ChatContainer>
     )

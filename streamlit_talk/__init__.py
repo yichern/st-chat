@@ -1,9 +1,10 @@
 import os
 from typing import Literal, Optional, Union
-import time
+
+import streamlit as st
 import streamlit.components.v1 as components
 
-_RELEASE = True
+_RELEASE = False
 COMPONENT_NAME = "streamlit_talk"
 
 if _RELEASE:  # use the build instead of development if release is true
@@ -80,45 +81,38 @@ def message(
 
     if not partial_replies:
         return _streamlit_talk(
-            value=value, 
-            animateFrom=animate_from, 
-            seed=seed, 
-            isUser=is_user, 
-            avatarStyle=avatar_style, 
-            key=value,
+            value=value,
+            animateFrom=animate_from,
+            seed=seed,
+            isUser=is_user,
+            avatarStyle=avatar_style,
+            key=key,
             useTypewriter=use_typewriter,
             default=True,
-            partialReplies=partial_replies,
         )
     else:
         if st.session_state.get("force_animation", None):
-            return_value = _streamlit_talk(
-                value=value, 
-                animateFrom=animate_from, 
-                seed=seed, 
-                isUser=is_user, 
-                avatarStyle=avatar_style, 
-                key=value,
+            return _streamlit_talk(
+                value=value,
+                animateFrom=animate_from,
+                seed=seed,
+                isUser=is_user,
+                avatarStyle=avatar_style,
+                key=key,
                 useTypewriter=True,
                 default=True,
-                partialReplies=partial_replies,
             )
-            if return_value != False:
-                st.session_state.force_animation = False
-                # the typewriter animation will force a refresh
-                st.stop()
 
         else:
             return _streamlit_talk(
-                value=value, 
-                animateFrom=animate_from, 
-                seed=seed, 
-                isUser=is_user, 
-                avatarStyle=avatar_style, 
+                value=value,
+                animateFrom=animate_from,
+                seed=seed,
+                isUser=is_user,
+                avatarStyle=avatar_style,
                 key=key,
                 useTypewriter=False,
                 default=True,
-                partialReplies=partial_replies,
             )
 
 
@@ -132,8 +126,12 @@ if not _RELEASE:
     # testing
     long_message = """A chatbot or chatterbot is a software application used to conduct an on-line chat conversation via text or text-to-speech, in lieu of providing direct contact with a live human agent.\n\nDesigned to convincingly simulate the way a human would behave as a conversational partner, chatbot systems typically require continuous tuning and testing, and many in production remain unable to adequately converse, while none of them can pass the standard Turing test. The term "ChatterBot" was originally coined by Michael Mauldin (creator of the first Verbot) in 1994 to describe these conversational programs.
     """
-    user_avatar = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f464.png"
-    bot_avatar = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f1ec-1f1f7.png"
+    user_avatar = (
+        "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f464.png"
+    )
+    bot_avatar = (
+        "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f1ec-1f1f7.png"
+    )
 
     with open("styles.css") as f:
         st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
@@ -142,9 +140,11 @@ if not _RELEASE:
         replies = [
             "Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things!",
         ]
+        import time
         for i in range(5):
             replies.append(f"{replies[-1]}\n\nThis is message{i}")
         for reply in replies:
+            time.sleep(3)
             yield reply
 
     def peek(iterable) -> str:
@@ -172,7 +172,6 @@ if not _RELEASE:
         st.session_state.force_animation = True
         st.session_state.start_loop = True
         st.session_state.rerun_counter = 0
-        
 
     for i in range(10):
         if i % 2 == 0:
@@ -190,12 +189,11 @@ if not _RELEASE:
             partial_replies=True,
         )
 
-
-
     def change_message_state(new_message):
         st.session_state.force_animation = True
         st.session_state.prev_message = st.session_state.curr_message
         st.session_state.curr_message = new_message
+
     if "replies" in st.session_state:
         curr_reply = peek(st.session_state.replies)
         if curr_reply != "":
@@ -206,6 +204,3 @@ if not _RELEASE:
             st.experimental_rerun()
 
     st.button("Message:", on_click=render_message())
-
-
-
