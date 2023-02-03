@@ -3,7 +3,7 @@ import {
   Streamlit,
   withStreamlitConnection,
 } from "streamlit-component-lib"
-import React, { ComponentProps, useEffect, useState } from "react"
+import React, { ComponentProps, useEffect } from "react"
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 import Typewriter from 'typewriter-effect'
@@ -30,6 +30,7 @@ const MessageContainer = (props: ComponentProps<any>) => {
   if (useTypewriter) {
     return (
       <StyledDiv>
+        <span>{animateFrom}</span>
         <Typewriter
           options={{
             delay: 10,
@@ -38,20 +39,19 @@ const MessageContainer = (props: ComponentProps<any>) => {
           }}
           onInit={typewriter => {
             typewriter
-              .pasteString(animateFrom, null)
               .typeString(
                 value.split(animateFrom).join('')
               )
               .callFunction(state => {
                 setTimeout(() => state.elements.cursor.setAttribute('hidden', 'hidden'), 3500)
-                typewriter.stop()
                 if (partialReplies) {
                   Streamlit.setComponentValue(false)
                 }
               })
               .start()
           }}
-        />
+        >
+        </Typewriter>
       </StyledDiv>
     )
   } else {
@@ -117,7 +117,11 @@ const Chat = (props: ComponentProps<any>) => {
         padding-right: 5px;
       `
     }
-    return css``
+    return css`
+      .Typewriter {
+        display: inline;
+      }
+    `
   })
   
   // custom callback to refresh streamlit on every character typed

@@ -2,6 +2,7 @@ import os
 import time
 from typing import Literal, Optional, Union
 
+import streamlit as st
 import streamlit.components.v1 as components
 
 _RELEASE = True
@@ -41,7 +42,6 @@ AvatarStyle = Literal[
     "pixel-art-neutral",
     "personas",
 ]
-
 
 def message(
     value: str,
@@ -171,8 +171,6 @@ if not _RELEASE:
         return first
 
     def render_message():
-        # if 'typed' in st.session_state:
-        #     message(value=st.session_state.typed, animate_from="", use_typewriter=True, key="typed_message")
         st.session_state.message_submitted = True
         st.session_state.prev_message = "Hello, I am a Chatbot,"
         st.session_state.replies = partial_replies()
@@ -181,11 +179,6 @@ if not _RELEASE:
         st.session_state.start_loop = True
         st.session_state.rerun_counter = 0
 
-    for i in range(10):
-        if i % 2 == 0:
-            message(f"{i}", is_user=True, avatar_style=user_avatar)
-        else:
-            message(f"bot {i}", is_user=False, avatar_style=bot_avatar)
     message(long_message, avatar_style=bot_avatar)
     message("Hey, what's a chatbot?", is_user=True, avatar_style=user_avatar)
     if st.session_state.get("message_submitted"):
