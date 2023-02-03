@@ -1,6 +1,6 @@
 import os
 from typing import Literal, Optional, Union
-
+import time
 import streamlit.components.v1 as components
 
 _RELEASE = True
@@ -43,8 +43,8 @@ AvatarStyle = Literal[
 
 
 def message(
-    complete_text: str,
-    initial_text: str = "",
+    value: str,
+    animate_from: str = "",
     is_user: Optional[bool] = False,
     avatar_style: Optional[AvatarStyle] = None,
     seed: Optional[Union[int, str]] = 42,
@@ -78,35 +78,65 @@ def message(
         avatar_style = "pixel-art-neutral" if is_user else "bottts"
 
     _streamlit_talk(
-        complete_text=complete_text, initial_text=initial_text, seed=seed, isUser=is_user, avatarStyle=avatar_style, key=key,
+        value=value, 
+        animateFrom=animate_from, 
+        seed=seed, 
+        isUser=is_user, 
+        avatarStyle=avatar_style, 
+        key=key,
         useTypewriter=use_typewriter
     )
 
 
-if not _RELEASE:
-    import streamlit as st
+import streamlit as st
 
-    chatlog_placeholder = st.empty()
-    user_input_placeholder = st.empty()
-    persona_selection_placeholder = st.empty()
+chatlog_placeholder = st.empty()
+user_input_placeholder = st.empty()
+persona_selection_placeholder = st.empty()
 
-    # testing
-    long_message = """A chatbot or chatterbot is a software application used to conduct an on-line chat conversation via text or text-to-speech, in lieu of providing direct contact with a live human agent.\n\nDesigned to convincingly simulate the way a human would behave as a conversational partner, chatbot systems typically require continuous tuning and testing, and many in production remain unable to adequately converse, while none of them can pass the standard Turing test. The term "ChatterBot" was originally coined by Michael Mauldin (creator of the first Verbot) in 1994 to describe these conversational programs.
-    """
-    user_avatar = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f464.png"
-    bot_avatar = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f1ec-1f1f7.png"
-    with open("styles.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+# testing
+long_message = """A chatbot or chatterbot is a software application used to conduct an on-line chat conversation via text or text-to-speech, in lieu of providing direct contact with a live human agent.\n\nDesigned to convincingly simulate the way a human would behave as a conversational partner, chatbot systems typically require continuous tuning and testing, and many in production remain unable to adequately converse, while none of them can pass the standard Turing test. The term "ChatterBot" was originally coined by Michael Mauldin (creator of the first Verbot) in 1994 to describe these conversational programs.
+"""
+user_avatar = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f464.png"
+bot_avatar = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f1ec-1f1f7.png"
 
-    with chatlog_placeholder.container():
-        message(initial_text="Hello, I am a Chatbot,", complete_text="Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things!", use_typewriter=True)
-        message("Hey, what's a chatbot?", is_user=True, avatar_style=user_avatar)
-        message(long_message, avatar_style=bot_avatar)
-        for i in range(10):
-            if i % 2 == 0:
-                message(f"{i}", is_user=True, avatar_style=user_avatar)
-            else:
-                message(f"bot {i}", is_user=False, avatar_style=bot_avatar)
+def render_message():
+    # if 'typed' in st.session_state:
+    #     message(value=st.session_state.typed, animate_from="", use_typewriter=True, key="typed_message")
+    st.session_state.message_submitted = True
+    st.session_state.prev_message = "Hello, I am a Chatbot,"
+    st.session_state.curr_message = "Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things!"
+    st.session_state.rerun = True
 
-    with user_input_placeholder.container():
-        st.text_input("Message:")
+with open("styles.css") as f:
+    st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+for i in range(10):
+    if i % 2 == 0:
+        message(f"{i}", is_user=True, avatar_style=user_avatar)
+    else:
+        message(f"bot {i}", is_user=False, avatar_style=bot_avatar)
+message(long_message, avatar_style=bot_avatar)
+message("Hey, what's a chatbot?", is_user=True, avatar_style=user_avatar)
+if "message_submitted" in st.session_state and st.session_state.message_submitted:
+    returned_value = message(
+        value=st.session_state.curr_message,
+        animate_from=st.session_state.prev_message,
+        use_typewriter=True,
+        key="last_message",
+    )
+
+def change_message_state():
+    st.session_state.prev_message = st.session_state.curr_message
+    st.session_state.curr_message = "Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things! I can help you with math, teach you recipes, and tell you about the world."
+
+if "rerun" in st.session_state and st.session_state.rerun:
+    del st.session_state.rerun
+    time.sleep(3)
+    change_message_state()
+    st.experimental_rerun()
+
+st.text_input("Message:", on_change=render_message())
+
+
+

@@ -1,132 +1,136 @@
 import {
   // eslint-disable-next-line 
   Streamlit,
-  StreamlitComponentBase,
   withStreamlitConnection,
 } from "streamlit-component-lib"
-import React, { ReactNode } from "react"
+import React, { ComponentProps, useEffect } from "react"
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 import Typewriter from 'typewriter-effect'
 
 
-class Chat extends StreamlitComponentBase {
-  public render = (): ReactNode => {
-    const { isUser, avatarStyle, seed, initial_text, complete_text, useTypewriter } = this.props.args;
-    let avatarUrl
-    if (avatarStyle.startsWith("https")) {
-      avatarUrl = avatarStyle
-    } else if (avatarStyle.startsWith("data:image")) {
-      avatarUrl = avatarStyle
-    } else {
-      avatarUrl = `https://avatars.dicebear.com/api/${avatarStyle}/${seed}.svg`
-    }
-    
-    // Streamlit sends us a theme object via props that we can use to ensure
-    // that our component has visuals that match the active theme in a
-    // streamlit app.
-    const { theme } = this.props
-    
-    // Maintain compatibility with older versions of Streamlit that don't send
-    // a theme object.
-    if (!theme) {
-      return <div>Theme is undefined, please check streamlit version.</div>
-    }
-    
-    // styles for the avatar image
-    const Avatar = styled.img({
-      border: `1px solid transparent`,
-      // borderRadius: '50%',
-      height: '3rem',
-      width: '3rem',
-      margin: 0,
-    })
-    
-    // styles for the message box
-    const Message = styled.div({
-      display: 'inline-block',
-      background: theme.secondaryBackgroundColor,
-      border: '1px solid transparent',
-      borderRadius: '10px',
-      padding: '10px 14px',
-      margin: '5px 20px',
-      maxWidth: '70%',
-      whiteSpace: 'pre-wrap',
-    })
-    
-    // styles for the container
-    const Chat = styled.div({
-      display: 'flex',
-      // flexDirection: 'row',
-      fontFamily: `${theme.font}, 'Segoe UI', 'Roboto', sans-serif`, 
-      height: 'auto',
-      margin: 0,
-      width: '100%'
-    }, 
-    (props: {isUser: boolean}) => {  // specific styles
-      if (props.isUser){
-        return css`
-          flex-direction: row-reverse;
-          & > div {
-            text-align: right;
-          }
-          padding-right: 5px;
-        `
-      }
-      return css``
-    })
-
-    // custom callback
-    var refreshStreamlitAndCreateNode = function(character: string) {
-      Streamlit.setFrameHeight();
-      return document.createTextNode(character)
-    }
-
-    if (!isUser && useTypewriter) {
-      return (
-        <Chat isUser={isUser}>
-          <Avatar src={avatarUrl} alt="profile" draggable="false"/>
-          <Message>
-            <Typewriter
-              options={{
-                delay: 10,
-                cursor: '▎',
-                onCreateTextNode: refreshStreamlitAndCreateNode
-              }}
-              onInit={typewriter => {
-                typewriter
-                  .pasteString(initial_text, null)
-                  .typeString(
-                    complete_text.split(initial_text).join('')
-                  )
-                  .callFunction(state => {
-                    setTimeout(() => state.elements.cursor.setAttribute('hidden', 'hidden'), 3000);
-                    typewriter.stop();
-                  })
-                  .start();
-              }}
-            />
-          </Message>
-        </Chat>
-      )
-    } else if (!isUser && !useTypewriter) {
-      return (
-        <Chat isUser={isUser}>
-          <Avatar src={avatarUrl} alt="profile" draggable="false"/>
-          <Message>
-            {complete_text}
-          </Message>
-        </Chat>
-      )
-    } else {
-      return (
-        <Chat isUser={isUser}>
-          <Avatar src={avatarUrl} alt="profile" draggable="false"/>
-          <Message>{complete_text}</Message>
-        </Chat>
-      )
-    }
-  } 
+// custom callback to refresh streamlit on every character typed
+const refreshStreamlitAndCreateNode = (character: string) => {
+  Streamlit.setFrameHeight();
+  return document.createTextNode(character)
 }
+
+const Chat = (props: ComponentProps<any>) => {
+  useEffect(() => Streamlit.setFrameHeight());
+  const { isUser, avatarStyle, seed, animateFrom, value, useTypewriter } = props.args;
+
+  let avatarUrl
+  if (avatarStyle.startsWith("https")) {
+    avatarUrl = avatarStyle
+  } else if (avatarStyle.startsWith("data:image")) {
+    avatarUrl = avatarStyle
+  } else {
+    avatarUrl = `https://avatars.dicebear.com/api/${avatarStyle}/${seed}.svg`
+  }
+
+  // Streamlit sends us a theme object via props that we can use to ensure
+  // that our component has visuals that match the active theme in a
+  // streamlit app.
+  const { theme } = props
+  // Maintain compatibility with older versions of Streamlit that don't send
+  // a theme object.
+  if (!theme) {
+    return <div>Theme is undefined, please check streamlit version.</div>
+  }
+
+  // styles for the avatar image
+  const Avatar = styled.img({
+    border: `1px solid transparent`,
+    // borderRadius: '50%',
+    height: '3rem',
+    width: '3rem',
+    margin: 0,
+  })
+
+  // styles for the message box
+  const MessageContainer = styled.div({
+    display: 'inline-block',
+    background: theme.secondaryBackgroundColor,
+    border: '1px solid transparent',
+    borderRadius: '10px',
+    padding: '10px 14px',
+    margin: '5px 20px',
+    maxWidth: '70%',
+    whiteSpace: 'pre-wrap',
+  })
+
+  // styles for the container
+  const ChatContainer = styled.div({
+    display: 'flex',
+    // flexDirection: 'row',
+    fontFamily: `${theme.font}, 'Segoe UI', 'Roboto', sans-serif`, 
+    height: 'auto',
+    margin: 0,
+    width: '100%'
+  }, 
+  (props: {isUser: boolean}) => {  // specific styles
+    if (props.isUser){
+      return css`
+        flex-direction: row-reverse;
+        & > div {
+          text-align: right;
+        }
+        padding-right: 5px;
+      `
+    }
+    return css``
+  })
+  
+  // custom callback to refresh streamlit on every character typed
+  const refreshStreamlitAndCreateNode = (character: string) => {
+    Streamlit.setFrameHeight();
+    return document.createTextNode(character)
+  }
+  
+  if (!isUser && useTypewriter) {
+    return (
+      <ChatContainer isUser={isUser}>
+        <Avatar src={avatarUrl} alt="profile" draggable="false"/>
+        <MessageContainer>
+          <Typewriter
+            options={{
+              delay: 10,
+              cursor: '▎',
+              onCreateTextNode: refreshStreamlitAndCreateNode
+            }}
+            onInit={typewriter => {
+              typewriter
+                .pasteString(animateFrom, null)
+                .typeString(
+                  value.split(animateFrom).join('')
+                )
+                .callFunction(state => {
+                  setTimeout(() => state.elements.cursor.setAttribute('hidden', 'hidden'), 3500);
+                  typewriter.stop();
+                })
+                .start();
+            }}
+          />
+        </MessageContainer>
+      </ChatContainer>
+    )
+  } else if (!isUser && !useTypewriter) {
+    return (
+      <ChatContainer isUser={isUser}>
+        <Avatar src={avatarUrl} alt="profile" draggable="false"/>
+        <MessageContainer>
+          {value}
+        </MessageContainer>
+      </ChatContainer>
+    )
+  } else {
+    return (
+      <ChatContainer isUser={isUser}>
+        <Avatar src={avatarUrl} alt="profile" draggable="false"/>
+        <MessageContainer>{value}</MessageContainer>
+      </ChatContainer>
+    )
+  }
+} 
 
 export default withStreamlitConnection(Chat);
