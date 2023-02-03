@@ -3,7 +3,7 @@ import {
   Streamlit,
   withStreamlitConnection,
 } from "streamlit-component-lib"
-import React, { ComponentProps, useEffect } from "react"
+import React, { ComponentProps, useEffect, useState } from "react"
 import styled from '@emotion/styled'
 import { css } from '@emotion/react'
 import Typewriter from 'typewriter-effect'
@@ -15,9 +15,59 @@ const refreshStreamlitAndCreateNode = (character: string) => {
   return document.createTextNode(character)
 }
 
+const MessageContainer = (props: ComponentProps<any>) => {
+  const { theme, value, animateFrom, useTypewriter } = props
+  const StyledDiv = styled.div({
+    display: 'inline-block',
+    background: theme.secondaryBackgroundColor,
+    border: '1px solid transparent',
+    borderRadius: '10px',
+    padding: '10px 14px',
+    margin: '5px 20px',
+    maxWidth: '70%',
+    whiteSpace: 'pre-wrap',
+  })
+  if (useTypewriter) {
+    console.log("rendering with typewriter")
+    return (
+      <StyledDiv>
+        <Typewriter
+          options={{
+            delay: 10,
+            cursor: '▎',
+            onCreateTextNode: refreshStreamlitAndCreateNode
+          }}
+          onInit={typewriter => {
+            typewriter
+              .pasteString(animateFrom, null)
+              .typeString(
+                value.split(animateFrom).join('')
+              )
+              .callFunction(state => {
+                setTimeout(() => state.elements.cursor.setAttribute('hidden', 'hidden'), 3500)
+                typewriter.stop()
+                Streamlit.setComponentValue(false);
+              })
+              .start()
+          }}
+        />
+      </StyledDiv>
+    )
+  } else {
+    return (
+      <StyledDiv>
+        {value}
+      </StyledDiv>
+    )
+  }
+}
+
 const Chat = (props: ComponentProps<any>) => {
-  useEffect(() => Streamlit.setFrameHeight());
-  const { isUser, avatarStyle, seed, animateFrom, value, useTypewriter } = props.args;
+  useEffect(() => {
+      Streamlit.setFrameHeight()
+    }
+  );
+  const { isUser, avatarStyle, seed, animateFrom, value, useTypewriter } = props.args
 
   let avatarUrl
   if (avatarStyle.startsWith("https")) {
@@ -47,18 +97,6 @@ const Chat = (props: ComponentProps<any>) => {
     margin: 0,
   })
 
-  // styles for the message box
-  const MessageContainer = styled.div({
-    display: 'inline-block',
-    background: theme.secondaryBackgroundColor,
-    border: '1px solid transparent',
-    borderRadius: '10px',
-    padding: '10px 14px',
-    margin: '5px 20px',
-    maxWidth: '70%',
-    whiteSpace: 'pre-wrap',
-  })
-
   // styles for the container
   const ChatContainer = styled.div({
     display: 'flex',
@@ -83,43 +121,14 @@ const Chat = (props: ComponentProps<any>) => {
   
   // custom callback to refresh streamlit on every character typed
   const refreshStreamlitAndCreateNode = (character: string) => {
-    Streamlit.setFrameHeight();
+    Streamlit.setFrameHeight()
     return document.createTextNode(character)
   }
-  
-  if (!isUser && useTypewriter) {
+  if (!isUser) {
     return (
       <ChatContainer isUser={isUser}>
         <Avatar src={avatarUrl} alt="profile" draggable="false"/>
-        <MessageContainer>
-          <Typewriter
-            options={{
-              delay: 10,
-              cursor: '▎',
-              onCreateTextNode: refreshStreamlitAndCreateNode
-            }}
-            onInit={typewriter => {
-              typewriter
-                .pasteString(animateFrom, null)
-                .typeString(
-                  value.split(animateFrom).join('')
-                )
-                .callFunction(state => {
-                  setTimeout(() => state.elements.cursor.setAttribute('hidden', 'hidden'), 3500);
-                  typewriter.stop();
-                })
-                .start();
-            }}
-          />
-        </MessageContainer>
-      </ChatContainer>
-    )
-  } else if (!isUser && !useTypewriter) {
-    return (
-      <ChatContainer isUser={isUser}>
-        <Avatar src={avatarUrl} alt="profile" draggable="false"/>
-        <MessageContainer>
-          {value}
+        <MessageContainer theme={theme} value={value} animateFrom={animateFrom} useTypewriter={useTypewriter}>
         </MessageContainer>
       </ChatContainer>
     )
@@ -127,7 +136,8 @@ const Chat = (props: ComponentProps<any>) => {
     return (
       <ChatContainer isUser={isUser}>
         <Avatar src={avatarUrl} alt="profile" draggable="false"/>
-        <MessageContainer>{value}</MessageContainer>
+        <MessageContainer theme={theme} value={value} animateFrom={animateFrom}>
+        </MessageContainer>
       </ChatContainer>
     )
   }
