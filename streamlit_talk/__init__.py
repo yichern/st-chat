@@ -3,7 +3,7 @@ from typing import Literal, Optional, Union
 import time
 import streamlit.components.v1 as components
 
-_RELEASE = True
+_RELEASE = False
 COMPONENT_NAME = "streamlit_talk"
 
 if _RELEASE:  # use the build instead of development if release is true
@@ -76,16 +76,45 @@ def message(
     """
     if not avatar_style:
         avatar_style = "pixel-art-neutral" if is_user else "bottts"
+    if not use_typewriter:
+        return _streamlit_talk(
+            value=value, 
+            animateFrom=animate_from, 
+            seed=seed, 
+            isUser=is_user, 
+            avatarStyle=avatar_style, 
+            key=value,
+            useTypewriter=use_typewriter,
+            default=True
+        )
 
-    _streamlit_talk(
-        value=value, 
-        animateFrom=animate_from, 
-        seed=seed, 
-        isUser=is_user, 
-        avatarStyle=avatar_style, 
-        key=key,
-        useTypewriter=use_typewriter
-    )
+    if st.session_state.get("force_animation", None):
+        return_value = _streamlit_talk(
+            value=value, 
+            animateFrom=animate_from, 
+            seed=seed, 
+            isUser=is_user, 
+            avatarStyle=avatar_style, 
+            key=value,
+            useTypewriter=True,
+            default=True
+        )
+        if return_value != False:
+            st.session_state.force_animation = False
+            st.stop()
+
+    else:
+        return _streamlit_talk(
+            value=value, 
+            animateFrom=animate_from, 
+            seed=seed, 
+            isUser=is_user, 
+            avatarStyle=avatar_style, 
+            key=key,
+            useTypewriter=False,
+            default=True
+        )
+
 
 if not _RELEASE:
     import streamlit as st
@@ -100,16 +129,44 @@ if not _RELEASE:
     user_avatar = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f464.png"
     bot_avatar = "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/1f1ec-1f1f7.png"
 
+    with open("styles.css") as f:
+        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+
+    def partial_replies():
+        replies = [
+            "Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things!",
+        ]
+        for i in range(5):
+            replies.append(f"{replies[-1]}\n\nThis is message{i}")
+        for reply in replies:
+            yield reply
+
+    def peek(iterable) -> str:
+        """Retrieves the next item from a generator object if it exists.
+
+        Args:
+            iterable (generator): A partial reply generator
+
+        Returns:
+            str: Returns the next partial reply
+        """
+        try:
+            first = next(iterable)
+        except StopIteration:
+            return ""
+        return first
+
     def render_message():
         # if 'typed' in st.session_state:
         #     message(value=st.session_state.typed, animate_from="", use_typewriter=True, key="typed_message")
         st.session_state.message_submitted = True
         st.session_state.prev_message = "Hello, I am a Chatbot,"
-        st.session_state.curr_message = "Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things!"
-        st.session_state.rerun = True
-
-    with open("styles.css") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        st.session_state.replies = partial_replies()
+        st.session_state.curr_message = next(st.session_state.replies)
+        st.session_state.force_animation = True
+        st.session_state.start_loop = True
+        st.session_state.rerun_counter = 0
+        
 
     for i in range(10):
         if i % 2 == 0:
@@ -118,25 +175,30 @@ if not _RELEASE:
             message(f"bot {i}", is_user=False, avatar_style=bot_avatar)
     message(long_message, avatar_style=bot_avatar)
     message("Hey, what's a chatbot?", is_user=True, avatar_style=user_avatar)
-    if "message_submitted" in st.session_state and st.session_state.message_submitted:
-        returned_value = message(
+    if st.session_state.get("message_submitted"):
+        message(
             value=st.session_state.curr_message,
             animate_from=st.session_state.prev_message,
             use_typewriter=True,
-            key="last_message",
+            key="last_message_animation",
         )
 
-    def change_message_state():
+
+
+    def change_message_state(new_message):
+        st.session_state.force_animation = True
         st.session_state.prev_message = st.session_state.curr_message
-        st.session_state.curr_message = "Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things! I can help you with math, teach you recipes, and tell you about the world."
+        st.session_state.curr_message = new_message
+    if "replies" in st.session_state:
+        curr_reply = peek(st.session_state.replies)
+        if curr_reply != "":
+            change_message_state(new_message=curr_reply)
+            st.experimental_rerun()
+        else:
+            del st.session_state.replies
+            st.experimental_rerun()
 
-    if "rerun" in st.session_state and st.session_state.rerun:
-        del st.session_state.rerun
-        time.sleep(3)
-        change_message_state()
-        st.experimental_rerun()
-
-    st.text_input("Message:", on_change=render_message())
+    st.button("Message:", on_click=render_message())
 
 
 
