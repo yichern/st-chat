@@ -1,7 +1,7 @@
 import os
+import time
 from typing import Literal, Optional, Union
 
-import streamlit as st
 import streamlit.components.v1 as components
 
 _RELEASE = True
@@ -89,19 +89,25 @@ def message(
             key=key,
             useTypewriter=use_typewriter,
             default=True,
+            partialReplies=partial_replies,
         )
     else:
         if st.session_state.get("force_animation", None):
-            return _streamlit_talk(
+            return_value = _streamlit_talk(
                 value=value,
                 animateFrom=animate_from,
                 seed=seed,
                 isUser=is_user,
                 avatarStyle=avatar_style,
-                key=key,
+                key=None,
                 useTypewriter=True,
                 default=True,
+                partialReplies=partial_replies,
             )
+            if return_value != False:
+                st.session_state.force_animation = False
+                # the typewriter animation will force a refresh
+                st.stop()
 
         else:
             return _streamlit_talk(
@@ -113,6 +119,7 @@ def message(
                 key=key,
                 useTypewriter=False,
                 default=True,
+                partialReplies=partial_replies,
             )
 
 
@@ -140,9 +147,10 @@ if not _RELEASE:
         replies = [
             "Hello, I am a Chatbot, how may I help you? I can help you with all sorts of things!",
         ]
-        import time
         for i in range(5):
-            replies.append(f"{replies[-1]}\n\nThis is message{i}")
+            replies.append(
+                f"{replies[-1]}\n\nThis is A chatbot or chatterbot is a software application used to conduct an on-line chat conversation via text or text-to-speech\nDesigned to convincingly simulate the way a human would behave as a conversational partner, chatbot systems typically require continuous tuning and testing, and many in production remain unable to adequately converse, while none of them can pass the standard Turing test. The term 'ChatterBot' was originally coined by Michael Mauldin (creator of the first Verbot) in 1994 to describe these conversational programs.{i}"
+            )
         for reply in replies:
             time.sleep(3)
             yield reply
