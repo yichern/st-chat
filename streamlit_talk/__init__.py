@@ -52,6 +52,7 @@ def message(
     key: Optional[str] = None,
     use_typewriter: bool = False,
     partial_replies: bool = False,
+    generation_complete: bool = True,
 ):
     """
     Creates a new instance of streamlit-chat component
@@ -90,6 +91,7 @@ def message(
             useTypewriter=use_typewriter,
             default=True,
             partialReplies=partial_replies,
+            generationComplete=generation_complete,
         )
     else:
         if st.session_state.get("force_animation", None):
@@ -103,6 +105,7 @@ def message(
                 useTypewriter=True,
                 default=True,
                 partialReplies=partial_replies,
+                generationComplete=generation_complete,
             )
             if return_value != False:
                 st.session_state.force_animation = False
@@ -120,6 +123,7 @@ def message(
                 useTypewriter=False,
                 default=True,
                 partialReplies=partial_replies,
+                generationComplete=generation_complete,
             )
 
 
@@ -149,10 +153,10 @@ if not _RELEASE:
         ]
         for i in range(5):
             replies.append(
-                f"{replies[-1]}\n\nThis is A chatbot or chatterbot is a software application used to conduct an on-line chat conversation via text or text-to-speech\nDesigned to convincingly simulate the way a human would behave as a conversational partner, chatbot systems typically require continuous tuning and testing, and many in production remain unable to adequately converse, while none of them can pass the standard Turing test. The term 'ChatterBot' was originally coined by Michael Mauldin (creator of the first Verbot) in 1994 to describe these conversational programs.{i}"
+                f"{replies[-1]}\n\nThis is A chatbot or chatterbot {i}"
             )
         for reply in replies:
-            time.sleep(3)
+            time.sleep(6)
             yield reply
 
     def peek(iterable) -> str:
@@ -178,6 +182,7 @@ if not _RELEASE:
         st.session_state.force_animation = True
         st.session_state.start_loop = True
         st.session_state.rerun_counter = 0
+        st.session_state.generation_complete = False
 
     message(long_message, avatar_style=bot_avatar)
     message("Hey, what's a chatbot?", is_user=True, avatar_style=user_avatar)
@@ -187,7 +192,7 @@ if not _RELEASE:
             animate_from=st.session_state.prev_message,
             use_typewriter=True,
             key="last_message_animation",
-            partial_replies=True,
+            generation_complete=st.session_state.generation_complete
         )
 
     def change_message_state(new_message):
@@ -202,6 +207,7 @@ if not _RELEASE:
             st.experimental_rerun()
         else:
             del st.session_state.replies
+            st.session_state.generation_complete = True
             st.experimental_rerun()
 
     st.button("Message:", on_click=render_message())
