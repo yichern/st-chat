@@ -27,7 +27,7 @@ const MessageContainer = (props: ComponentProps<any>) => {
     maxWidth: '70%',
     whiteSpace: 'pre-wrap',
   })
-  if (useTypewriter) {
+  if (useTypewriter && value.split(animateFrom).join('')) {
     return (
       <StyledDiv>
         <span>{animateFrom}</span>

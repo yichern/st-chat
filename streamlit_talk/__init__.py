@@ -186,6 +186,12 @@ if not _RELEASE:
 
     message(long_message, avatar_style=bot_avatar)
     message("Hey, what's a chatbot?", is_user=True, avatar_style=user_avatar)
+    message(
+        value="hi there",
+        animate_from="hi there",
+        use_typewriter=True,
+        generation_complete=True
+    )
     if st.session_state.get("message_submitted"):
         message(
             value=st.session_state.curr_message,
