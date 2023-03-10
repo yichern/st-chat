@@ -6,7 +6,7 @@ with open("README.md") as readme_file:
 
 setuptools.setup(
     name="streamlit-talk",
-    version="0.2.0",
+    version="0.2.1",
     author="Yi Chern Tan",
     author_email="tanyichern.accs@gmail.com",
     description="A streamlit component, to make a UI for chat messages in Streamlit",

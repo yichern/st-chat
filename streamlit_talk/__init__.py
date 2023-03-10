@@ -43,6 +43,7 @@ AvatarStyle = Literal[
     "personas",
 ]
 
+@st.cache_resource(experimental_allow_widgets=True)
 def message(
     value: str,
     animate_from: str = "",
