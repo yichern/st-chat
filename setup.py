@@ -6,7 +6,7 @@ with open("README.md") as readme_file:
 
 setuptools.setup(
     name="streamlit-talk",
-    version="0.1.9",
+    version="0.2.0",
     author="Yi Chern Tan",
     author_email="tanyichern.accs@gmail.com",
     description="A streamlit component, to make a UI for chat messages in Streamlit",
@@ -25,6 +25,6 @@ setuptools.setup(
         # By definition, a Custom Component depends on Streamlit.
         # If your component has other Python dependencies, list
         # them here.
-        "streamlit >= 0.63",
+        "streamlit >= 1.18.1",
     ],
 )
